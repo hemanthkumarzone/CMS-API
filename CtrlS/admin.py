@@ -10,6 +10,7 @@ from .models import (
     Footer,
     FooterSection, FooterItem
 )
+from .models import Section, Card
 
 admin.site.register(PortfolioData)
 admin.site.register(Navbar)
@@ -25,3 +26,5 @@ admin.site.register(DemoForm)
 admin.site.register(Footer)
 admin.site.register(FooterSection)
 admin.site.register(FooterItem)
+admin.site.register(Section)
+admin.site.register(Card)
