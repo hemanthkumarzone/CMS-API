@@ -27,6 +27,7 @@ class MenuItem(models.Model):
 
 class DropdownItem(models.Model):
     TYPE_CHOICES = (
+        ('services', 'Services'), 
         ('resources', 'Resources'),
         ('platform', 'Platform'),
         ('company', 'Company'),
@@ -176,3 +177,29 @@ class Contact(models.Model):
 
     def __str__(self):
         return self.email
+class Section(models.Model):
+    dropdown = models.ForeignKey(
+        DropdownItem,
+        on_delete=models.CASCADE,
+        related_name='sections'
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)  # ✅ ADD THIS
+
+    def __str__(self):
+        return f"{self.dropdown.title} - {self.title}"
+    
+class Card(models.Model):
+    section = models.ForeignKey(
+        Section,
+        on_delete=models.CASCADE,
+        related_name='cards'
+    )
+    title = models.TextField()  # ✅ no limit
+    description = models.TextField()  # ✅ no limit
+
+    def __str__(self):
+        return self.title[:50]  # show first 50 chars in admin
+    
+
+

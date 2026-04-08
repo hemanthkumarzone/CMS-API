@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from .models import Section, Card
 
 
 class PortfolioDataSerializer(serializers.ModelSerializer):
@@ -18,7 +19,6 @@ class DropdownItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = DropdownItem
         fields = '__all__'
-
 
 class NavbarSerializer(serializers.ModelSerializer):
     menu_items = MenuItemSerializer(many=True, read_only=True)
@@ -121,3 +121,19 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = '__all__'
+
+class CardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = ['id', 'title', 'description']
+
+
+class SectionSerializer(serializers.ModelSerializer):
+    cards = CardSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Section
+        fields = ['id', 'title', 'description', 'dropdown', 'cards']
+
+
+

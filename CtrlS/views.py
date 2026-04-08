@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from .serializers import SectionSerializer
 
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -196,4 +197,29 @@ def signup_view(request):
             {"message": "Server error in signup"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    
+class SectionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Section.objects.all()
+    serializer_class = SectionSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        dropdown_id = self.request.query_params.get('dropdown_id')
+
+        if dropdown_id:
+            queryset = queryset.filter(dropdown_id=dropdown_id)
+
+        return queryset
+
+
+class CardViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        section_id = self.request.query_params.get('section_id')
+
+        if section_id:
+            queryset = queryset.filter(section_id=section_id)
+
+        return queryset
