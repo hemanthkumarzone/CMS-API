@@ -1,4 +1,5 @@
 from django.db import models
+from ckeditor.fields import RichTextField
 
 
 class PortfolioData(models.Model):
@@ -37,7 +38,7 @@ class DropdownItem(models.Model):
     navbar = models.ForeignKey(Navbar, on_delete=models.CASCADE, related_name='dropdowns')
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True, null=True)
+    description = RichTextField(blank=True, null=True)
     path = models.CharField(max_length=200)
 
     def __str__(self):
@@ -53,7 +54,7 @@ class User(models.Model):
 
 class Hero(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = RichTextField()
 
     def __str__(self):
         return self.title
@@ -61,7 +62,7 @@ class Hero(models.Model):
 
 class InfrastructureCard(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = RichTextField()
 
     def __str__(self):
         return self.title
@@ -69,7 +70,7 @@ class InfrastructureCard(models.Model):
 
 class Visibility(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = RichTextField()
 
     def __str__(self):
         return self.title
@@ -79,7 +80,7 @@ class VisibilityCard(models.Model):
     visibility = models.ForeignKey(Visibility, on_delete=models.CASCADE, related_name='cards')
     icon = models.CharField(max_length=200)
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = RichTextField()
 
     def __str__(self):
         return self.title
@@ -89,7 +90,7 @@ class Service(models.Model):
     icon_type = models.CharField(max_length=50)
     icon = models.CharField(max_length=200)
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = RichTextField()
 
     def __str__(self):
         return self.title
@@ -98,7 +99,7 @@ class Service(models.Model):
 class Demo(models.Model):
     heading = models.CharField(max_length=100)
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = RichTextField()
 
     def __str__(self):
         return self.title
@@ -129,8 +130,8 @@ class DemoFormSubmission(models.Model):
         return self.name
     
 class Footer(models.Model):
-    tagline = models.TextField()
-    description = models.TextField()
+    tagline = RichTextField()
+    description = RichTextField()
     copyright = models.CharField(max_length=255)
 
     def __str__(self):
@@ -183,8 +184,8 @@ class Section(models.Model):
         on_delete=models.CASCADE,
         related_name='sections'
     )
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True, null=True)  # ✅ ADD THIS
+    title = models.CharField(max_length=200, blank=True, null=True)
+    description = RichTextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.dropdown.title} - {self.title}"
@@ -195,11 +196,14 @@ class Card(models.Model):
         on_delete=models.CASCADE,
         related_name='cards'
     )
-    title = models.TextField()  # ✅ no limit
-    description = models.TextField()  # ✅ no limit
+    title = RichTextField()
+    description = RichTextField()
+
+    # ✅ ADD THIS LINE
+    file = models.FileField(upload_to='ebooks/', null=True, blank=True)
 
     def __str__(self):
-        return self.title[:50]  # show first 50 chars in admin
+        return self.title[:50]
     
 
 

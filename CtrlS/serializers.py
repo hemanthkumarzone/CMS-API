@@ -125,7 +125,7 @@ class ContactSerializer(serializers.ModelSerializer):
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
-        fields = ['id', 'title', 'description']
+        fields = ['id', 'title', 'description','file']
 
 
 class SectionSerializer(serializers.ModelSerializer):

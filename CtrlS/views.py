@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import SectionSerializer
+from django.core.mail import send_mail
+from django.conf import settings
 
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -187,6 +189,20 @@ def signup_view(request):
             email=email,
             password=make_password(password)
         )
+
+        print("STEP 1: USER CREATED")
+
+        print("Sending email to:", email)
+
+        send_mail(
+            subject="Welcome to CtrlS 🎉",
+            message=f"Hi {name}, your account has been created successfully.",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+
+        print("STEP 2: EMAIL SENT")
 
         return Response(
             {"message": "Signup successful"},
