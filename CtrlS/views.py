@@ -216,7 +216,7 @@ def signup_view(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 class SectionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Section.objects.all()
+    queryset = Section.objects.prefetch_related('cards__content').all()
     serializer_class = SectionSerializer
 
     def get_queryset(self):
@@ -241,3 +241,20 @@ class CardViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(section_id=section_id)
 
         return queryset
+from rest_framework.views import APIView
+
+
+class BlogPageView(APIView):
+    def get(self, request):
+        sections = Section.objects.prefetch_related('cards__content').all()
+        serializer = SectionSerializer(sections, many=True)
+        return Response(serializer.data)
+    
+class BlogDetailView(APIView):
+    def get(self, request, slug):
+        try:
+            card = Card.objects.select_related('content').get(slug=slug)
+            serializer = CardSerializer(card)
+            return Response(serializer.data)
+        except Card.DoesNotExist:
+            return Response({"message": "Blog not found"}, status=404)

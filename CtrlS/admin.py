@@ -11,6 +11,7 @@ from .models import (
     FooterSection, FooterItem
 )
 from .models import Section, Card
+from .models import BlogContent
 
 admin.site.register(PortfolioData)
 admin.site.register(Navbar)
@@ -28,3 +29,4 @@ admin.site.register(FooterSection)
 admin.site.register(FooterItem)
 admin.site.register(Section)
 admin.site.register(Card)
+admin.site.register(BlogContent)
