@@ -5,6 +5,9 @@ from rest_framework import status
 from .serializers import SectionSerializer
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import EmailMultiAlternatives
 
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -83,15 +86,65 @@ class DemoViewSet(viewsets.ModelViewSet):
     queryset = Demo.objects.all()
     serializer_class = DemoSerializer
 
-
 class DemoFormViewSet(viewsets.ModelViewSet):
     queryset = DemoForm.objects.all()
     serializer_class = DemoFormSerializer
 
-
 class DemoFormSubmissionViewSet(viewsets.ModelViewSet):
     queryset = DemoFormSubmission.objects.all()
     serializer_class = DemoFormSubmissionSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            instance = serializer.save()
+
+            # =========================
+            # 📩 EMAIL TO MENTOR
+            # =========================
+            send_mail(
+                subject="New Demo Request 🚀",
+                message=f"""
+New Demo Request Received:
+
+Name: {instance.name}
+Email: {instance.email}
+Organization: {instance.organization}
+Source: {instance.source}
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[settings.MENTOR_EMAIL],  # 🔥 CHANGE THIS
+                fail_silently=False,
+            )
+
+            # =========================
+            # 📩 EMAIL TO USER
+            # =========================
+            send_mail(
+                subject="Thanks for requesting a demo 🎉",
+                message=f"""
+Hi {instance.name},
+
+Thank you for your interest in CtrlS.
+
+Our team has received your request and will contact you shortly.
+
+Regards,  
+CtrlS Team
+                """,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[instance.email],
+                fail_silently=False,
+            )
+
+            return Response(
+                {"message": "Demo request submitted successfully"},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
 
 
 class PortfolioDataViewSet(viewsets.ModelViewSet):
@@ -102,7 +155,65 @@ class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
 
+        if serializer.is_valid():
+            instance = serializer.save()
+
+        # =========================
+        # 📩 EMAIL TO ADMIN (KEEP THIS)
+        # =========================
+        send_mail(
+            subject="New Contact Message 📩",
+            message=f"""
+New Contact Message Received:
+
+Name: {instance.first_name} {instance.last_name}
+Email: {instance.email}
+Phone: {instance.phone}
+Company: {instance.company}
+Position: {instance.position}
+Location: {instance.location}
+City: {instance.city}
+Inquiry: {instance.inquiry_type}
+
+Message:
+{instance.message}
+            """,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[settings.MENTOR_EMAIL],
+            fail_silently=False,
+        )
+
+        # =========================
+        # 📩 HTML EMAIL TO USER (FIXED)
+        # =========================
+        html_content = render_to_string(
+            "emails/welcome_email.html",
+            {
+                "name": instance.first_name
+            }
+        )
+
+        text_content = strip_tags(html_content)
+
+        email_msg = EmailMultiAlternatives(
+            subject="We received your message 🎉",
+            body=text_content,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[instance.email],
+        )
+
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+
+        return Response(
+            {"message": "Contact submitted successfully"},
+            status=status.HTTP_201_CREATED
+        )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # =========================
 # 🔐 LOGIN API (JWT)
 # =========================
@@ -172,49 +283,45 @@ def signup_view(request):
         password = request.data.get('password')
 
         if not name or not email or not password:
-            return Response(
-                {"message": "All fields required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"message": "All fields required"}, status=400)
 
         if User.objects.filter(email=email).exists():
-            return Response(
-                {"message": "User already exists"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"message": "User already exists"}, status=400)
 
-        # ✅ create user
+        # ✅ Create user
         user = User.objects.create(
             name=name,
             email=email,
             password=make_password(password)
         )
 
-        print("STEP 1: USER CREATED")
+        # =========================
+        # 📩 HTML EMAIL
+        # =========================
 
-        print("Sending email to:", email)
+        html_content = render_to_string(
+            "emails/welcome_email.html",
+            {"name": name}
+        )
 
-        send_mail(
-            subject="Welcome to CtrlS 🎉",
-            message=f"Hi {name}, your account has been created successfully.",
+        text_content = strip_tags(html_content)
+
+        email_msg = EmailMultiAlternatives(
+            subject="Welcome to AI FinOps 🎉",
+            body=text_content,
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[email],
-            fail_silently=False,
+            to=[email],
         )
 
-        print("STEP 2: EMAIL SENT")
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
 
-        return Response(
-            {"message": "Signup successful"},
-            status=status.HTTP_201_CREATED
-        )
+        return Response({"message": "Signup successful"}, status=201)
 
     except Exception as e:
-        print("SIGNUP ERROR:", str(e))  
-        return Response(
-            {"message": "Server error in signup"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        print("ERROR:", str(e))
+        return Response({"message": "Server error"}, status=500)
+    
 class SectionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Section.objects.prefetch_related('cards__content').all()
     serializer_class = SectionSerializer

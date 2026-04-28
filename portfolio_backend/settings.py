@@ -66,7 +66,7 @@ ROOT_URLCONF = 'portfolio_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # ✅ IMPORTANT FIX
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,6 +77,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'portfolio_backend.wsgi.application'
 
@@ -147,3 +148,4 @@ EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+MENTOR_EMAIL = os.getenv("MENTOR_EMAIL")

@@ -167,13 +167,28 @@ class User(models.Model):
         return self.email
     
 class Contact(models.Model):
-    name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100, blank=True, null=True)
+
     email = models.EmailField()
-    message = models.TextField()
+    phone = models.CharField(max_length=20, blank=True, null=True)
+
+    company = models.CharField(max_length=150, blank=True, null=True)
+    position = models.CharField(max_length=100, blank=True, null=True)
+
+    location = models.CharField(max_length=100)
+    city = models.CharField(max_length=100, blank=True, null=True)
+
+    inquiry_type = models.CharField(max_length=120, blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+
+    consent = models.BooleanField(default=False)
+    subscribe = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.email
+        return f"{self.first_name} - {self.email}"
 class Section(models.Model):
     dropdown = models.ForeignKey(
         DropdownItem,
@@ -193,6 +208,7 @@ class Card(models.Model):
     description = models.TextField()
 
     image = models.ImageField(upload_to='blogs/', null=True, blank=True)
+    file = models.FileField(upload_to='ebooks/', null=True, blank=True)
     slug = models.SlugField(unique=True, blank=True, null=True)
 
     is_featured = models.BooleanField(default=False)

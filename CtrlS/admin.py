@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import (
+    Contact,
+    DemoFormSubmission,
     PortfolioData,
     Navbar, MenuItem, DropdownItem,
     Hero,
@@ -30,3 +32,5 @@ admin.site.register(FooterItem)
 admin.site.register(Section)
 admin.site.register(Card)
 admin.site.register(BlogContent)
+admin.site.register(DemoFormSubmission)
+admin.site.register(Contact)
