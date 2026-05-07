@@ -100,56 +100,61 @@ class DemoFormSubmissionViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             instance = serializer.save()
 
-            # =========================
+            print("🔥 DEMO SUBMITTED:", instance.email)
+
             # 📩 EMAIL TO MENTOR
-            # =========================
             send_mail(
                 subject="New Demo Request 🚀",
                 message=f"""
-New Demo Request Received:
-
 Name: {instance.name}
 Email: {instance.email}
 Organization: {instance.organization}
 Source: {instance.source}
                 """,
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[settings.MENTOR_EMAIL],  # 🔥 CHANGE THIS
+                recipient_list=[settings.MENTOR_EMAIL],
                 fail_silently=False,
             )
 
-            # =========================
             # 📩 EMAIL TO USER
-            # =========================
-            send_mail(
-                subject="Thanks for requesting a demo 🎉",
-                message=f"""
-Hi {instance.name},
+            html_content = render_to_string(
+                "emails/demo_request.html",
+                {
+                    "first_name": instance.name,
+                    "company_name": instance.organization,
+                    "product_name": "CtrlS",
+                    "booking_link": "http://localhost:5173/book-demo"
+                }
+            )
 
-Thank you for your interest in CtrlS.
+            text_content = strip_tags(html_content)
 
-Our team has received your request and will contact you shortly.
-
-Regards,  
-CtrlS Team
-                """,
+            email_msg = EmailMultiAlternatives(
+                subject="We received your demo request 🚀",
+                body=text_content,
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[instance.email],
-                fail_silently=False,
+                to=[instance.email],
             )
 
-            return Response(
-                {"message": "Demo request submitted successfully"},
-                status=status.HTTP_201_CREATED
-            )
+            email_msg.attach_alternative(html_content, "text/html")
+            email_msg.send()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            print("🔥 EMAIL SENT")
+
+            return Response({"message": "Demo submitted"}, status=201)
+
+        return Response(serializer.errors, status=400)
    
 
 
 class PortfolioDataViewSet(viewsets.ModelViewSet):
     queryset = PortfolioData.objects.all()
     serializer_class = PortfolioDataSerializer
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.conf import settings
 
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
@@ -158,11 +163,14 @@ class ContactViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            instance = serializer.save()
+        # ✅ VALIDATION FIX
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        instance = serializer.save()
 
         # =========================
-        # 📩 EMAIL TO ADMIN (KEEP THIS)
+        # 📩 EMAIL TO ADMIN
         # =========================
         send_mail(
             subject="New Contact Message 📩",
@@ -187,33 +195,36 @@ Message:
         )
 
         # =========================
-        # 📩 HTML EMAIL TO USER (FIXED)
+        # 📩 PLAIN TEXT EMAIL TO USER (NO HTML)
         # =========================
-        html_content = render_to_string(
-            "emails/welcome_email.html",
-            {
-                "name": instance.first_name
-            }
-        )
-
-        text_content = strip_tags(html_content)
-
-        email_msg = EmailMultiAlternatives(
+        send_mail(
             subject="We received your message 🎉",
-            body=text_content,
-            from_email=settings.EMAIL_HOST_USER,
-            to=[instance.email],
-        )
+            message=f"""
+Hi {instance.first_name},
 
-        email_msg.attach_alternative(html_content, "text/html")
-        email_msg.send()
+Thank you for contacting CtrlS AI FinOps.
+
+We have successfully received your message and our team will get back to you shortly.
+
+----------------------------------------
+Your Details:
+Name: {instance.first_name} {instance.last_name}
+Email: {instance.email}
+Company: {instance.company}
+----------------------------------------
+
+Best regards,  
+CtrlS Team
+            """,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[instance.email],
+            fail_silently=False,
+        )
 
         return Response(
             {"message": "Contact submitted successfully"},
             status=status.HTTP_201_CREATED
         )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # =========================
 # 🔐 LOGIN API (JWT)
 # =========================
@@ -298,11 +309,15 @@ def signup_view(request):
         # =========================
         # 📩 HTML EMAIL
         # =========================
-
         html_content = render_to_string(
-            "emails/welcome_email.html",
-            {"name": name}
-        )
+    "emails/welcome_email.html",
+    {
+        "name": name,
+        "organization": "CTRLS",
+        "plan": "Business Enterprise Plan",
+        "admin_email": email
+    }
+)
 
         text_content = strip_tags(html_content)
 
@@ -365,3 +380,53 @@ class BlogDetailView(APIView):
             return Response(serializer.data)
         except Card.DoesNotExist:
             return Response({"message": "Blog not found"}, status=404)
+        
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+
+
+@api_view(['POST'])
+def confirm_booking(request):
+    name = request.data.get("name")
+    email = request.data.get("email")
+    date = request.data.get("selected_date")
+    time = request.data.get("selected_time")
+
+    # ✅ EXTRA DETAILS (STATIC FOR NOW)
+    duration = "30 minutes"
+    host = "CtrlS Team"
+    meeting_link = "https://meet.ctrls.com/demo-123"
+    passcode = "123456"
+
+    print("🔥 BOOKING RECEIVED:", name, email, date, time)
+
+    # 📩 EMAIL TEMPLATE
+    html_content = render_to_string(
+        "emails/demo_confirmation.html",
+        {
+            "first_name": name,
+            "selected_date": date,
+            "selected_time": time,
+            "duration": duration,
+            "host": host,
+            "meeting_link": meeting_link,
+            "passcode": passcode,
+        }
+    )
+
+    text_content = strip_tags(html_content)
+
+    email_msg = EmailMultiAlternatives(
+      subject="🎉 Your Demo is Confirmed",
+      body=text_content,
+      from_email=settings.EMAIL_HOST_USER,  # ✅ ADD THIS
+      to=[email],
+)
+
+    email_msg.attach_alternative(html_content, "text/html")
+    email_msg.send()
+
+    return Response({"message": "Demo confirmed"})
