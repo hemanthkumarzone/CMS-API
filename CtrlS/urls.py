@@ -21,6 +21,7 @@ from .views import (
     CardViewSet,
     login_view,
     signup_view,
+    confirm_booking, 
 )
 
 router = DefaultRouter()
@@ -52,6 +53,7 @@ router.register(r'cards', CardViewSet)
 urlpatterns = router.urls + [
     path('login/', login_view),
     path('signup/', signup_view),
+    path("confirm-demo/", confirm_booking),
     path("api/",include(router.urls)),
 ]
  

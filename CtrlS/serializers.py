@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from .models import Section, Card
+
 
 
 class PortfolioDataSerializer(serializers.ModelSerializer):
@@ -121,12 +121,32 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = '__all__'
+class BlogContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlogContent
+        fields = [
+            'main_content',
+            'sidebar_items',
+            'demo_title',
+            'demo_description'
+        ]
 
 class CardSerializer(serializers.ModelSerializer):
+    content = BlogContentSerializer(read_only=True)
+
     class Meta:
         model = Card
-        fields = ['id', 'title', 'description','file']
-
+        fields = [
+            'id',
+            'title',
+            'description',
+            'image',
+            'slug',
+            'is_featured',   # ✅ ADD
+            'file',
+            'created_at',
+            'content'        # ✅ ADD (MOST IMPORTANT)
+        ]
 
 class SectionSerializer(serializers.ModelSerializer):
     cards = CardSerializer(many=True, read_only=True)
@@ -134,6 +154,5 @@ class SectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Section
         fields = ['id', 'title', 'description', 'dropdown', 'cards']
-
 
 

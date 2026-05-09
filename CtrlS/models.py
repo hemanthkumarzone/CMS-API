@@ -1,5 +1,6 @@
 from django.db import models
 from ckeditor.fields import RichTextField
+from django.utils.text import slugify
 
 
 class PortfolioData(models.Model):
@@ -44,12 +45,7 @@ class DropdownItem(models.Model):
     def __str__(self):
         return f"{self.type} - {self.title}"
     
-class User(models.Model):
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=100)
 
-    def __str__(self):
-        return self.email
 
 
 class Hero(models.Model):
@@ -171,13 +167,28 @@ class User(models.Model):
         return self.email
     
 class Contact(models.Model):
-    name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100, blank=True, null=True)
+
     email = models.EmailField()
-    message = models.TextField()
+    phone = models.CharField(max_length=20, blank=True, null=True)
+
+    company = models.CharField(max_length=150, blank=True, null=True)
+    position = models.CharField(max_length=100, blank=True, null=True)
+
+    location = models.CharField(max_length=100)
+    city = models.CharField(max_length=100, blank=True, null=True)
+
+    inquiry_type = models.CharField(max_length=120, blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+
+    consent = models.BooleanField(default=False)
+    subscribe = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.email
+        return f"{self.first_name} - {self.email}"
 class Section(models.Model):
     dropdown = models.ForeignKey(
         DropdownItem,
@@ -191,19 +202,38 @@ class Section(models.Model):
         return f"{self.dropdown.title} - {self.title}"
     
 class Card(models.Model):
-    section = models.ForeignKey(
-        Section,
-        on_delete=models.CASCADE,
-        related_name='cards'
-    )
-    title = RichTextField()
-    description = RichTextField()
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='cards')
 
-    # ✅ ADD THIS LINE
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    image = models.ImageField(upload_to='blogs/', null=True, blank=True)
     file = models.FileField(upload_to='ebooks/', null=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True, null=True)
+
+    is_featured = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.title[:50]
+        return self.title
     
 
+class BlogContent(models.Model):
+    card = models.OneToOneField(Card, on_delete=models.CASCADE, related_name="content")
 
+    main_content = RichTextField(blank=True, null=True)   # ✅ FIXED
+
+    sidebar_items = models.JSONField(default=list, blank=True)
+
+    demo_title = models.CharField(max_length=255, blank=True, null=True)
+    demo_description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Content for {self.card.title}"
