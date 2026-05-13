@@ -49,7 +49,7 @@ router.register(r'contact', ContactViewSet)
 router.register(r'sections', SectionViewSet)
 router.register(r'cards', CardViewSet)
 
-# ✅ COMBINE ROUTER + CUSTOM API
+
 urlpatterns = router.urls + [
     path('login/', login_view),
     path('signup/', signup_view),

@@ -138,7 +138,7 @@ class FooterSection(models.Model):
     footer = models.ForeignKey(
         Footer,
         on_delete=models.CASCADE,
-        related_name="sections"   # ✅ IMPORTANT
+        related_name="sections"   
     )
     title = models.CharField(max_length=100)
 
@@ -153,7 +153,7 @@ class FooterItem(models.Model):
         related_name="items"
     )
     name = models.CharField(max_length=100)
-    path = models.CharField(max_length=200, blank=True, null=True)  # ✅ ADD THIS
+    path = models.CharField(max_length=200, blank=True, null=True)  
 
     def __str__(self):
         return self.name
@@ -228,7 +228,7 @@ class Card(models.Model):
 class BlogContent(models.Model):
     card = models.OneToOneField(Card, on_delete=models.CASCADE, related_name="content")
 
-    main_content = RichTextField(blank=True, null=True)   # ✅ FIXED
+    main_content = RichTextField(blank=True, null=True)   
 
     sidebar_items = models.JSONField(default=list, blank=True)
 

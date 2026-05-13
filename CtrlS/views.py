@@ -14,14 +14,14 @@ from django.contrib.auth.hashers import make_password, check_password
 from .models import *
 from .serializers import *
 
-# ✅ JWT
+# JWT
 import jwt
 from datetime import datetime, timedelta
 
 
-# =========================
+
 # READ-ONLY APIs
-# =========================
+
 
 class NavbarViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Navbar.objects.all()
@@ -78,9 +78,7 @@ class FooterItemViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FooterItemSerializer
 
 
-# =========================
-# FULL CRUD APIs
-# =========================
+
 
 class DemoViewSet(viewsets.ModelViewSet):
     queryset = Demo.objects.all()
@@ -100,9 +98,9 @@ class DemoFormSubmissionViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             instance = serializer.save()
 
-            print("🔥 DEMO SUBMITTED:", instance.email)
+            print("DEMO SUBMITTED:", instance.email)
 
-            # 📩 EMAIL TO MENTOR
+            
             send_mail(
                 subject="New Demo Request 🚀",
                 message=f"""
@@ -116,7 +114,7 @@ Source: {instance.source}
                 fail_silently=False,
             )
 
-            # 📩 EMAIL TO USER
+            
             html_content = render_to_string(
                 "emails/demo_request.html",
                 {
@@ -139,7 +137,7 @@ Source: {instance.source}
             email_msg.attach_alternative(html_content, "text/html")
             email_msg.send()
 
-            print("🔥 EMAIL SENT")
+            print("EMAIL SENT")
 
             return Response({"message": "Demo submitted"}, status=201)
 
@@ -163,15 +161,13 @@ class ContactViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
-        # ✅ VALIDATION FIX
+        
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         instance = serializer.save()
 
-        # =========================
-        # 📩 EMAIL TO ADMIN
-        # =========================
+       
         send_mail(
             subject="New Contact Message 📩",
             message=f"""
@@ -194,9 +190,7 @@ Message:
             fail_silently=False,
         )
 
-        # =========================
-        # 📩 PLAIN TEXT EMAIL TO USER (NO HTML)
-        # =========================
+        
         send_mail(
             subject="We received your message 🎉",
             message=f"""
@@ -225,9 +219,7 @@ CtrlS Team
             {"message": "Contact submitted successfully"},
             status=status.HTTP_201_CREATED
         )
-# =========================
-# 🔐 LOGIN API (JWT)
-# =========================
+
 
 @api_view(['POST'])
 def login_view(request):
@@ -282,9 +274,7 @@ def login_view(request):
         )
 
 
-# =========================
-# 🆕 SIGNUP API (FIXED)
-# =========================
+
 
 @api_view(['POST'])
 def signup_view(request):
@@ -299,16 +289,14 @@ def signup_view(request):
         if User.objects.filter(email=email).exists():
             return Response({"message": "User already exists"}, status=400)
 
-        # ✅ Create user
+        
         user = User.objects.create(
             name=name,
             email=email,
             password=make_password(password)
         )
 
-        # =========================
-        # 📩 HTML EMAIL
-        # =========================
+       
         html_content = render_to_string(
     "emails/welcome_email.html",
     {
@@ -395,7 +383,7 @@ def confirm_booking(request):
     date = request.data.get("selected_date")
     time = request.data.get("selected_time")
 
-    # ✅ EXTRA DETAILS (STATIC FOR NOW)
+    
     duration = "30 minutes"
     host = "CtrlS Team"
     meeting_link = "https://meet.ctrls.com/demo-123"
@@ -403,7 +391,7 @@ def confirm_booking(request):
 
     print("🔥 BOOKING RECEIVED:", name, email, date, time)
 
-    # 📩 EMAIL TEMPLATE
+    # EMAIL TEMPLATE
     html_content = render_to_string(
         "emails/demo_confirmation.html",
         {
@@ -422,7 +410,7 @@ def confirm_booking(request):
     email_msg = EmailMultiAlternatives(
       subject="🎉 Your Demo is Confirmed",
       body=text_content,
-      from_email=settings.EMAIL_HOST_USER,  # ✅ ADD THIS
+      from_email=settings.EMAIL_HOST_USER,  
       to=[email],
 )
 
