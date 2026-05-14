@@ -205,7 +205,7 @@ class Card(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='cards')
 
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
 
     image = models.ImageField(upload_to='blogs/', null=True, blank=True)
     file = models.FileField(upload_to='ebooks/', null=True, blank=True)
