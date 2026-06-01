@@ -155,4 +155,10 @@ class SectionSerializer(serializers.ModelSerializer):
         model = Section
         fields = ['id', 'title', 'description', 'dropdown', 'cards']
 
+class DemoBookingSerializer(serializers.ModelSerializer):
 
+    class Meta:
+
+        model = DemoBooking
+
+        fields = "__all__"

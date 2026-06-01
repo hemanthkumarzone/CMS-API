@@ -10,6 +10,8 @@ from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
 
 from django.contrib.auth.hashers import make_password, check_password
+from django.shortcuts import get_object_or_404
+
 
 from .models import *
 from .serializers import *
@@ -17,7 +19,7 @@ from .serializers import *
 # JWT
 import jwt
 from datetime import datetime, timedelta
-
+import uuid
 
 
 # READ-ONLY APIs
@@ -386,10 +388,44 @@ def confirm_booking(request):
     
     duration = "30 minutes"
     host = "CtrlS Team"
-    meeting_link = "https://meet.ctrls.com/demo-123"
+    meeting_id = str(uuid.uuid4())[:8]
+
+    meeting_link = (
+        f"https://meet.ctrls.com/demo-{meeting_id}"
+    )
+    
     passcode = "123456"
 
-    print("🔥 BOOKING RECEIVED:", name, email, date, time)
+    print("BOOKING RECEIVED:", name, email, date, time)
+
+    booking = DemoBooking.objects.create(
+
+    name=name,
+
+    email=email,
+
+    linkedin=request.data.get("linkedin"),
+
+    notes=request.data.get("notes"),
+
+    selected_date=date,
+
+    selected_time=time,
+
+    timezone=request.data.get(
+        "timezone",
+        "Asia/Kolkata"
+    ),
+
+    google_meet_link=meeting_link,
+
+    status="confirmed"
+)
+    cancel_url = (
+    f"http://localhost:5173/"
+    f"cancel-booking/"
+    f"{booking.booking_token}"
+)
 
     # EMAIL TEMPLATE
     html_content = render_to_string(
@@ -402,6 +438,7 @@ def confirm_booking(request):
             "host": host,
             "meeting_link": meeting_link,
             "passcode": passcode,
+            "cancel_url": cancel_url,
         }
     )
 
@@ -417,4 +454,191 @@ def confirm_booking(request):
     email_msg.attach_alternative(html_content, "text/html")
     email_msg.send()
 
-    return Response({"message": "Demo confirmed"})
+    return Response({
+
+    "message": "Demo confirmed",
+
+    "meeting_link": meeting_link,
+
+    "cancel_url": cancel_url,
+
+    "booking_id": str(
+        booking.booking_token
+    )
+
+})
+
+@api_view(['GET'])
+def booked_slots(request):
+
+    selected_date = request.GET.get("date")
+
+    if not selected_date:
+
+        return Response(
+            {
+                "error": "Date is required"
+            },
+            status=400
+        )
+
+    bookings = DemoBooking.objects.filter(
+        selected_date=selected_date,
+        status__in=["pending", "confirmed"]
+    )
+
+    slots = bookings.values_list(
+        "selected_time",
+        flat=True
+    )
+
+    return Response(
+        {
+            "booked_slots": list(slots)
+        }
+    )
+
+@api_view(['GET'])
+def cancel_booking(request, token):
+
+    try:
+
+        booking = DemoBooking.objects.get(
+            booking_token=token
+        )
+
+        if booking.status == "cancelled":
+
+            return Response({
+
+                "message":
+                "Booking already cancelled"
+
+            })
+
+        if booking.status == "completed":
+
+            return Response({
+
+                "message":
+                "Completed bookings cannot be cancelled"
+
+            })
+
+        booking.status = "cancelled"
+
+        booking.save()
+
+        return Response({
+
+            "success": True,
+
+            "message":
+            "Booking cancelled successfully"
+
+        })
+
+    except DemoBooking.DoesNotExist:
+
+        return Response({
+
+            "error":
+            "Invalid booking token"
+
+        }, status=404)
+    
+@api_view(['GET'])
+def booking_details(request, token):
+
+    try:
+
+        booking = DemoBooking.objects.get(
+            booking_token=token
+        )
+
+        return Response({
+
+            "name": booking.name,
+
+            "email": booking.email,
+
+            "linkedin": booking.linkedin,
+
+            "notes": booking.notes,
+
+            "selected_date":
+            booking.selected_date,
+
+            "selected_time":
+            booking.selected_time,
+
+            "timezone":
+            booking.timezone,
+
+        })
+
+    except DemoBooking.DoesNotExist:
+
+        return Response({
+
+            "error":
+            "Booking not found"
+
+        }, status=404)
+    
+@api_view(['PUT'])
+def reschedule_booking(request, token):
+
+    try:
+
+        booking = DemoBooking.objects.get(
+            booking_token=token
+        )
+
+        if booking.status == "cancelled":
+
+            return Response({
+
+                "message":
+                "Cancelled bookings cannot be rescheduled"
+
+            })
+
+        booking.selected_date = (
+            request.data.get(
+                "selected_date"
+            )
+        )
+
+        booking.selected_time = (
+            request.data.get(
+                "selected_time"
+            )
+        )
+
+        booking.timezone = (
+            request.data.get(
+                "timezone",
+                booking.timezone
+            )
+        )
+
+        booking.save()
+
+        return Response({
+
+            "success": True,
+
+            "message":
+            "Booking rescheduled successfully"
+
+        })
+
+    except DemoBooking.DoesNotExist:
+
+        return Response({
+
+            "error":
+            "Booking not found"
+
+        }, status=404)

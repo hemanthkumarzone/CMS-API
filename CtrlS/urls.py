@@ -21,7 +21,11 @@ from .views import (
     CardViewSet,
     login_view,
     signup_view,
-    confirm_booking, 
+    confirm_booking,
+    booked_slots, 
+    cancel_booking,
+    booking_details,
+    reschedule_booking,
 )
 
 router = DefaultRouter()
@@ -51,9 +55,28 @@ router.register(r'cards', CardViewSet)
 
 
 urlpatterns = router.urls + [
+
     path('login/', login_view),
+
     path('signup/', signup_view),
+
     path("confirm-demo/", confirm_booking),
-    path("api/",include(router.urls)),
+
+    path("booked-slots/", booked_slots),
+
+    path(
+    "cancel-booking/<uuid:token>/",
+    cancel_booking
+),
+
+    path(
+    "booking-details/<uuid:token>/",
+    booking_details
+),
+
+    path(
+    "reschedule-booking/<uuid:token>/",
+    reschedule_booking
+),
 ]
  
