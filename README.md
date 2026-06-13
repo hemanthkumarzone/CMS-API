@@ -104,3 +104,17 @@ docker rmi cms-api
 * **Docker is NOT used in production.**
 * Production deployments follow the organization's standard deployment process directly on the server infrastructure.
 * Any Docker-related configurations should be considered **testing/development utilities only**.
+
+## PostgreSQL Configuration
+
+This project now uses PostgreSQL by default. Create a `.env` file from `.env.example` and set the following values:
+
+```bash
+DB_NAME=cms_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+Then run Django normally with the standard `portfolio_backend.settings` module.
