@@ -66,7 +66,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# ✅ FIXED FORM SERIALIZER
+
 class DemoFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemoForm
@@ -74,7 +74,7 @@ class DemoFormSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return {
-            "title": "Request a Demo",  # ✅ ADD THIS (IMPORTANT)
+            "title": "Request a Demo",  
             "name": instance.name_label,
             "email": instance.email_label,
             "organization": instance.organization_label,
@@ -83,7 +83,7 @@ class DemoFormSerializer(serializers.ModelSerializer):
         }
 
 
-# ✅ FIXED MAIN DEMO SERIALIZER
+
 class DemoSerializer(serializers.ModelSerializer):
     form = DemoFormSerializer(read_only=True)
 
@@ -142,10 +142,10 @@ class CardSerializer(serializers.ModelSerializer):
             'description',
             'image',
             'slug',
-            'is_featured',   # ✅ ADD
+            'is_featured',   
             'file',
             'created_at',
-            'content'        # ✅ ADD (MOST IMPORTANT)
+            'content'        
         ]
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -155,4 +155,10 @@ class SectionSerializer(serializers.ModelSerializer):
         model = Section
         fields = ['id', 'title', 'description', 'dropdown', 'cards']
 
+class DemoBookingSerializer(serializers.ModelSerializer):
 
+    class Meta:
+
+        model = DemoBooking
+
+        fields = "__all__"

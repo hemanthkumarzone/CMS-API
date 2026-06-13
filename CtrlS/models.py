@@ -1,7 +1,7 @@
 from django.db import models
 from ckeditor.fields import RichTextField
 from django.utils.text import slugify
-
+import uuid
 
 class PortfolioData(models.Model):
     name = models.CharField(max_length=100)
@@ -138,7 +138,7 @@ class FooterSection(models.Model):
     footer = models.ForeignKey(
         Footer,
         on_delete=models.CASCADE,
-        related_name="sections"   # ✅ IMPORTANT
+        related_name="sections"   
     )
     title = models.CharField(max_length=100)
 
@@ -153,7 +153,7 @@ class FooterItem(models.Model):
         related_name="items"
     )
     name = models.CharField(max_length=100)
-    path = models.CharField(max_length=200, blank=True, null=True)  # ✅ ADD THIS
+    path = models.CharField(max_length=200, blank=True, null=True)  
 
     def __str__(self):
         return self.name
@@ -205,7 +205,7 @@ class Card(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='cards')
 
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
 
     image = models.ImageField(upload_to='blogs/', null=True, blank=True)
     file = models.FileField(upload_to='ebooks/', null=True, blank=True)
@@ -228,7 +228,7 @@ class Card(models.Model):
 class BlogContent(models.Model):
     card = models.OneToOneField(Card, on_delete=models.CASCADE, related_name="content")
 
-    main_content = RichTextField(blank=True, null=True)   # ✅ FIXED
+    main_content = RichTextField(blank=True, null=True)   
 
     sidebar_items = models.JSONField(default=list, blank=True)
 
@@ -237,3 +237,74 @@ class BlogContent(models.Model):
 
     def __str__(self):
         return f"Content for {self.card.title}"
+    
+
+
+class DemoBooking(models.Model):
+
+    STATUS_CHOICES = (
+        ("pending", "Pending"),
+        ("confirmed", "Confirmed"),
+        ("cancelled", "Cancelled"),
+        ("completed", "Completed"),
+    )
+
+    name = models.CharField(
+        max_length=100
+    )
+
+    email = models.EmailField()
+
+    linkedin = models.URLField(
+        blank=True,
+        null=True
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    selected_date = models.DateField()
+
+    selected_time = models.CharField(
+        max_length=50
+    )
+
+    timezone = models.CharField(
+        max_length=100,
+        default="Asia/Kolkata"
+    )
+
+    google_meet_link = models.URLField(
+        blank=True,
+        null=True
+    )
+
+    booking_token = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+
+        return (
+            f"{self.name} - "
+            f"{self.selected_date} - "
+            f"{self.selected_time}"
+        )
