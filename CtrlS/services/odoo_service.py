@@ -1,9 +1,13 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 import xmlrpc.client
 
-ODOO_URL = "http://localhost:8069"
-ODOO_DB = "portfolio_odoo"
-ODOO_USERNAME = "chejarladhanalakshmi18@gmail.com"
-ODOO_PASSWORD = "Admin@123"
+ODOO_URL = os.getenv("ODOO_URL")
+ODOO_DB = os.getenv("ODOO_DB")
+ODOO_USERNAME = os.getenv("ODOO_USERNAME")
+ODOO_PASSWORD = os.getenv("ODOO_PASSWORD")
 
 
 def test_odoo_connection():
