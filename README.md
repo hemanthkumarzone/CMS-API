@@ -105,16 +105,8 @@ docker rmi cms-api
 * Production deployments follow the organization's standard deployment process directly on the server infrastructure.
 * Any Docker-related configurations should be considered **testing/development utilities only**.
 
-## PostgreSQL Configuration
+## Database configuration
 
-This project now uses PostgreSQL by default. Create a `.env` file from `.env.example` and set the following values:
+This project uses SQLite by default for local development. The local database file is `db.sqlite3` in the project root.
 
-```bash
-DB_NAME=cms_db
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
-```
-
-Then run Django normally with the standard `portfolio_backend.settings` module.
+If you plan to implement PostgreSQL-backed features later, keep the `.env.example` for reference and only install Postgres client packages when needed.
