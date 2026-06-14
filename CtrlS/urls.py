@@ -26,6 +26,7 @@ from .views import (
     cancel_booking,
     booking_details,
     reschedule_booking,
+    test_odoo
 )
 
 router = DefaultRouter()
@@ -78,5 +79,6 @@ urlpatterns = router.urls + [
     "reschedule-booking/<uuid:token>/",
     reschedule_booking
 ),
+    path("test-odoo/", test_odoo),
 ]
  

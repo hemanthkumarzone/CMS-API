@@ -187,6 +187,108 @@ class Contact(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('trial', 'Trial Active'),
+        ('engaged', 'Engaged'),
+        ('converted', 'Converted'),
+        ('lost', 'Lost'),
+    ]
+
+    SEGMENT_CHOICES = [
+        ('startup', 'Startup'),
+        ('enterprise', 'Enterprise'),
+        ('datacenter', 'Data Center'),
+    ]
+
+    PLAN_CHOICES = [
+        ('free', 'Free Trial'),
+        ('standard', 'Standard'),
+        ('enterprise', 'Enterprise'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+    ]
+
+    DEPLOYMENT_CHOICES = [
+        ('multi_cloud', 'Multi-Cloud'),
+        ('on_premise', 'On-Premise'),
+        ('private_cloud', 'Private Cloud'),
+        ('single_cloud', 'Single Cloud'),
+    ]
+
+    SOURCE_CHOICES = [
+        ('website', 'Website'),
+        ('linkedin', 'LinkedIn'),
+        ('referral', 'Referral'),
+        ('event', 'Event / Conference'),
+        ('other', 'Other'),
+    ]
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='new'
+    )
+
+    segment = models.CharField(
+        max_length=20,
+        choices=SEGMENT_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    plan_interest = models.CharField(
+        max_length=20,
+        choices=PLAN_CHOICES,
+        blank=True,
+        null=True
+   )
+
+    deployment_type = models.CharField(
+        max_length=20,
+        choices=DEPLOYMENT_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    priority = models.CharField(
+        max_length=10,
+        choices=PRIORITY_CHOICES,
+        default='medium'
+    )
+
+    lead_source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default='website'
+    )
+
+    assigned_to = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    estimated_spend = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
     def __str__(self):
         return f"{self.first_name} - {self.email}"
 class Section(models.Model):

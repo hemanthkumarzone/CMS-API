@@ -11,7 +11,7 @@ from django.core.mail import EmailMultiAlternatives
 
 from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import get_object_or_404
-
+from .services.odoo_service import create_crm_lead
 
 from .models import *
 from .serializers import *
@@ -101,7 +101,16 @@ class DemoFormSubmissionViewSet(viewsets.ModelViewSet):
             instance = serializer.save()
 
             print("DEMO SUBMITTED:", instance.email)
-
+            try:
+                create_crm_lead(
+                    name=instance.name,
+                    email=instance.email,
+                    company=instance.organization,
+                    description=f"Demo Request from {instance.name}"
+                )
+                print("ODOO LEAD CREATED")
+            except Exception as e:
+                print("ODOO ERROR:", str(e))
             
             send_mail(
                 subject="New Demo Request 🚀",
@@ -168,7 +177,16 @@ class ContactViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         instance = serializer.save()
-
+        try:
+            create_crm_lead(
+                name=f"{instance.first_name} {instance.last_name}",
+                email=instance.email,
+                phone=instance.phone,
+                company=instance.company,
+                description=instance.message
+            )
+        except Exception as e:
+            print("ODOO ERROR:", str(e))
        
         send_mail(
             subject="New Contact Message 📩",
@@ -400,32 +418,47 @@ def confirm_booking(request):
 
     booking = DemoBooking.objects.create(
 
-    name=name,
+        name=name,
 
-    email=email,
+        email=email,
 
-    linkedin=request.data.get("linkedin"),
+        linkedin=request.data.get("linkedin"),
 
-    notes=request.data.get("notes"),
+        notes=request.data.get("notes"),
 
-    selected_date=date,
+        selected_date=date,
 
-    selected_time=time,
+        selected_time=time,
 
-    timezone=request.data.get(
-        "timezone",
-        "Asia/Kolkata"
-    ),
+        timezone=request.data.get(
+            "timezone",
+            "Asia/Kolkata"
+        ),
 
-    google_meet_link=meeting_link,
+        google_meet_link=meeting_link,
 
-    status="confirmed"
-)
+        status="confirmed"
+    )
+    try:
+        create_crm_lead(
+            name=name,
+            email=email,
+            description=(
+                f"Demo Booking\n"
+                f"Date: {date}\n"
+                f"Time: {time}\n"
+                f"LinkedIn: {request.data.get('linkedin')}"
+            )
+        )
+    except Exception as e:
+        print("ODOO ERROR:", str(e))
+
+
     cancel_url = (
-    f"http://localhost:5173/"
-    f"cancel-booking/"
-    f"{booking.booking_token}"
-)
+        f"http://localhost:5173/"
+        f"cancel-booking/"
+        f"{booking.booking_token}"
+    )
 
     # EMAIL TEMPLATE
     html_content = render_to_string(
@@ -642,3 +675,15 @@ def reschedule_booking(request, token):
             "Booking not found"
 
         }, status=404)
+    
+from .services.odoo_service import test_odoo_connection
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+
+@api_view(["GET"])
+def test_odoo(request):
+
+    result = test_odoo_connection()
+
+    return Response(result)
